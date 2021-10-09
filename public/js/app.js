@@ -2221,6 +2221,11 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   name: "ReapiterMovieDirectors",
   props: ["movie_directors", "directors"],
@@ -38133,6 +38138,14 @@ var render = function() {
       _vm._l(_vm.movie_directors, function(item, index) {
         return _c("div", { key: "movieDirectors" + index }, [
           _c("div", { staticClass: "input-group mb-3" }, [
+            _c("input", {
+              attrs: {
+                type: "hidden",
+                name: "movieDirectors[" + index + "][movie_directors_id]"
+              },
+              domProps: { value: item.id }
+            }),
+            _vm._v(" "),
             _c(
               "select",
               {

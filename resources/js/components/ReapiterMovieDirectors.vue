@@ -14,6 +14,11 @@
             :key="'movieDirectors' + index"
         >
             <div class="input-group mb-3">
+                <input
+                    type="hidden"
+                    :name="'movieDirectors[' + index + '][movie_directors_id]'"
+                    :value="item.id"
+                />
                 <select
                     class="form-control"
                     :name="'movieDirectors[' + index + '][director_id]'"

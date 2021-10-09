@@ -49,7 +49,6 @@ class MovieController extends Controller
             ->select('movies_actors.id as id','actors.id as actor_id','actors.name') 
             ->where('movies_actors.movie_id',$id)
             ->get();
-            // treba mi id iz tabele movie_actors.id, njega proslijeđujem
         
         $arrayOneMovieShow['directorsDetail']=Director::leftJoin('movie_directors','directors.id','=','movie_directors.director_id')
             ->select('movie_directors.id as id','directors.id as director_id','directors.name')
@@ -103,14 +102,15 @@ class MovieController extends Controller
             $newMovieDirector->director_id=$oneDirector['director_id'];
             $newMovieDirector->save();
         } 
-        
-        
+            
         return redirect('/home');
-       
     }
 
     public function edit_movie( Request $request){
-        dd($request);
+        // dd($request);
+        $editMovieActors=$request->get('movieActors');
+        $editMovieDirectors=$request->get('movieDirectors');
+         
         $validation=$request->validate([
             'name'=>'required',
             'category_id'=>'required',
@@ -126,10 +126,35 @@ class MovieController extends Controller
         $editMovie->fill($validation);
         $editMovie->save();
 
-        // foreach()
-        // dd($editMovie);
-        // dd($idOfRequest);
+        // edit or delete actors
+        $movieActorsIds=[];
 
+        foreach($editMovieActors as $editOneActor){
+
+            $allActors=MoviesActor::updateOrCreate(
+            ['id'=>$editOneActor['movie_actor_id']],          
+            ['actor_id'=>$editOneActor['actor_id'], 
+             'movie_id'=>$editMovie->id]); 
+
+            $movieActorsIds[]=$allActors->id;         
+        }
+        MoviesActor::where('movie_id',$editMovie->id)->whereNotIn('id',$movieActorsIds)->delete();
+        //    edit or delete directors
+        $movieDirectorsIds=[];   
+           
+        foreach($editMovieDirectors as $editOneDiector){
+
+            $allDirectors=MovieDirector::updateOrCreate(
+                ['id'=>$editOneDiector['movie_directors_id']],
+                ['director_id'=>$editOneDiector['director_id'],
+                 'movie_id'=>$editMovie->id]);
+                 
+            $movieDirectorsIds[]=$allDirectors->id;     
+            
+        }
+        MovieDirector::where('movie_id',$editMovie->id)->whereNotIn('id',$movieDirectorsIds)->delete();
+
+       
         return redirect()->back( );
     }
 
