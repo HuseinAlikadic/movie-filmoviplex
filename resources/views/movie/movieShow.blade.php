@@ -20,9 +20,38 @@
            <h5>  Year of film release: @{{ movieDetail.dateOfRealiseMovie}}, IMBD  <star-rating  :inline="true"  :read-only="true" :rating=" movieDetail.rated_value" :star-size="15" :show-rating="false" /> </h5>   
             <h5>Actors: <span v-for="(actor,index) in actorDetail" :key="index">@{{ nameOfActors(index)}} </span> </h5>
             <h5>Directors: <span v-for="(director,index) in directorsDetail"> @{{nameOfDirectors(index)}}</span></h5>         
-           <h5>Country: @{{ movieDetail.country }}</h5>
+           <h5>Country: @{{ movieDetail.country }}</h5>          
        </div>
+      
    </div>
+   <br>
+   <div class="row">
+    <div class="col-md-4">
+    </div>
+    <div class="col-md-8">
+      <div v-for="comment in commentsOfMovie">
+        <div class="card card-white post">
+          <div class="post-heading">            
+              <div class="float-left meta">
+                  <div class="title h5">
+                     <p>User: @{{comment.name  }} </p>
+                  </div>
+                  <h6 class="text-muted time">1 minute ago</h6>
+              </div>
+          </div> 
+          <div class="post-description"> 
+              <p>@{{ comment.comment_value }}</p>            
+          </div>
+      </div>
+      </div>
+    </div>
+   </div>
+   <div class="row">        
+      <div class="col-md-12">
+      <br>
+      <comments-movie :comments_of_movie="commentsOfMovie" :movie_id="movieDetail.id" :user_id="userLog"></comments-movie>
+      </div>
+    </div>
    {{-- Edit movie detail --}}
    <div class="modal" id="editMovieDetailId">
     <div class="modal-dialog">
@@ -75,13 +104,6 @@
               <reapiter-movie-actors :movie_actors="actorDetail" :actors="actors"></reapiter-movie-actors>
                        
               <reapiter-movie-directors :movie_directors="directorsDetail" :directors="directors"></reapiter-movie-directors> 
-           
-
-         
-           
-
-
-
 
             <!-- Modal footer -->
             <div class="modal-footer">
@@ -107,9 +129,9 @@ const app = new Vue({
             actorDetail:<?=$actorDetail?>,
             directorsDetail:<?=$directorsDetail?>,
             actors:<?=$actors?>,
-            directors:<?=$directors?>
-              
-           
+            directors:<?=$directors?>,            
+            commentsOfMovie:<?=$commentsOfMovie?>,
+            userLog:"<?=$userLog?>" 
            
         }
     },

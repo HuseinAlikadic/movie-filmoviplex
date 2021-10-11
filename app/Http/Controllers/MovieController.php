@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+// use Illuminate\Support\Facades\Auth;
 use App\Models\Actor;
 use App\Models\Category;
 use App\Models\Comment;
@@ -12,7 +12,7 @@ use App\Models\Movie;
 use App\Models\MovieDirector;
 use App\Models\MoviesActor;
 use App\Models\User;
-
+use Auth;
 
 
 
@@ -58,6 +58,16 @@ class MovieController extends Controller
         $arrayOneMovieShow['actors']=Actor::get();
 
         $arrayOneMovieShow['directors']=Director::get();    
+
+        $arrayOneMovieShow['userLog']=Auth::id();  
+   
+
+        $arrayOneMovieShow['commentsOfMovie']=Comment::leftJoin('users', 'users.id','=','comments.user_id')
+        ->leftJoin('movies', 'movies.id', '=', 'comments.movie_id')
+        ->select('comments.id as id', 'users.id as user_id', 'users.name', 'comments.movie_id', 'comments.comment_value')
+        ->where('comments.movie_id',$id)
+        ->get();                               
+
 
         return view('movie/movieShow')->with($arrayOneMovieShow);
     }
@@ -110,7 +120,7 @@ class MovieController extends Controller
         // dd($request);
         $editMovieActors=$request->get('movieActors');
         $editMovieDirectors=$request->get('movieDirectors');
-         
+        // edit movie 
         $validation=$request->validate([
             'name'=>'required',
             'category_id'=>'required',
@@ -143,19 +153,43 @@ class MovieController extends Controller
         $movieDirectorsIds=[];   
            
         foreach($editMovieDirectors as $editOneDiector){
-
+                info($editOneDiector['movie_directors_id']);
+                info("ggggggggggg");
             $allDirectors=MovieDirector::updateOrCreate(
                 ['id'=>$editOneDiector['movie_directors_id']],
                 ['director_id'=>$editOneDiector['director_id'],
                  'movie_id'=>$editMovie->id]);
                  
             $movieDirectorsIds[]=$allDirectors->id;     
-            
+                      
         }
+                info($movieDirectorsIds);
+     
         MovieDirector::where('movie_id',$editMovie->id)->whereNotIn('id',$movieDirectorsIds)->delete();
 
        
         return redirect()->back( );
+    }
+
+    public function add_comment( Request $request){
+      $movieId=$request['params']['movie_id'];
+      $movieComment=$request['params']['movieComment'];
+      $userId=$request['params']['user_id'];
+      
+      $newComments= new Comment();
+      $newComments->user_id=$userId;
+      $newComments->movie_id=$movieId;
+      $newComments->comment_value=$movieComment;
+      $newComments->save();
+       
+    
+        $commentsOfMovie=Comment::leftJoin('users', 'users.id','=','comments.user_id')
+        ->leftJoin('movies', 'movies.id', '=', 'comments.movie_id')
+        ->select('comments.id as id', 'users.id as user_id', 'users.name', 'comments.movie_id', 'comments.comment_value')
+        ->where('comments.movie_id',$movieId)
+        ->get();   
+
+        return $commentsOfMovie;
     }
 
 }

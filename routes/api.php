@@ -22,3 +22,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/add-movie', [MovieController::class, 'add_new_movie'])->name('addNewMovie');
 Route::post('/edit-movie', [MovieController::class, 'edit_movie'])->name('editMovie');
+Route::post('/add-comment', [MovieController::class, 'add_comment'])->name('addComment');
