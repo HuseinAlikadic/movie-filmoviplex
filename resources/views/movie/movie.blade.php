@@ -2,11 +2,21 @@
 
 @section('content')
 <div class="container-fluid">
+   
+    <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search movie by name"  v-model="searchMovie">
+        <div class="input-group-append">
+        <button class="btn btn-secondary" type="button" @click="search_movie()">
+            <i class="fa fa-search"></i>
+        </button>
+        </div>
+    </div>
+    <br>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addNewMovie">
         Add movie
-      </button>
-      <br>
-      <br>
+    </button>
+    <br>
+    <br>
     <div class="row">
         <div class="column"v-for="movie in basicMovieInformation">
           <div class="card h-100">              
@@ -96,9 +106,8 @@ const app = new Vue({
             actors:<?=$actors?>,
             directors:<?=$directors?>,
             movie_actors:[],
-            movie_directors:[]             
-                        
-                    
+            movie_directors:[],
+            searchMovie:"",                              
         }
     },
     methods: {
@@ -112,7 +121,18 @@ const app = new Vue({
             }
             // console.log(this.path);
         },    
-       
+        search_movie:function(){
+           axios.post('/api/search',{
+               params:{
+                searchMovie:this.searchMovie,             
+               }
+           })
+          .then(response=>{
+              this.basicMovieInformation=response.data   
+            //   console.log(response.data);        
+          })        
+           
+        }
     },
    
    

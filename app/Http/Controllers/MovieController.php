@@ -135,7 +135,7 @@ class MovieController extends Controller
         $editMovie=Movie::find($idOfRequest);
         $editMovie->fill($validation);
         $editMovie->save();
-
+        
         // edit or delete actors
         $movieActorsIds=[];
 
@@ -153,8 +153,7 @@ class MovieController extends Controller
         $movieDirectorsIds=[];   
            
         foreach($editMovieDirectors as $editOneDiector){
-                info($editOneDiector['movie_directors_id']);
-                info("ggggggggggg");
+              
             $allDirectors=MovieDirector::updateOrCreate(
                 ['id'=>$editOneDiector['movie_directors_id']],
                 ['director_id'=>$editOneDiector['director_id'],
@@ -163,25 +162,23 @@ class MovieController extends Controller
             $movieDirectorsIds[]=$allDirectors->id;     
                       
         }
-                info($movieDirectorsIds);
-     
-        MovieDirector::where('movie_id',$editMovie->id)->whereNotIn('id',$movieDirectorsIds)->delete();
 
+        MovieDirector::where('movie_id',$editMovie->id)->whereNotIn('id',$movieDirectorsIds)->delete();
        
         return redirect()->back( );
     }
 
     public function add_comment( Request $request){
-      $movieId=$request['params']['movie_id'];
-      $movieComment=$request['params']['movieComment'];
-      $userId=$request['params']['user_id'];
-      
-      $newComments= new Comment();
-      $newComments->user_id=$userId;
-      $newComments->movie_id=$movieId;
-      $newComments->comment_value=$movieComment;
-      $newComments->save();
-       
+        $movieId=$request['params']['movie_id'];
+        $movieComment=$request['params']['movieComment'];
+        $userId=$request['params']['user_id'];
+        
+        $newComments= new Comment();
+        $newComments->user_id=$userId;
+        $newComments->movie_id=$movieId;
+        $newComments->comment_value=$movieComment;
+        $newComments->save();
+        
     
         $commentsOfMovie=Comment::leftJoin('users', 'users.id','=','comments.user_id')
         ->leftJoin('movies', 'movies.id', '=', 'comments.movie_id')
@@ -190,6 +187,17 @@ class MovieController extends Controller
         ->get();   
 
         return $commentsOfMovie;
+    }
+
+    public function search_movie(Request $request){
+    //   dd($request->get('searchMovie'));
+        $searchMovie=$request['params']['searchMovie'];
+        
+        $searchResult=Movie::selectRaw('YEAR(realise_date) as dateOfRealiseMovie, movies.id,movies.name,movies.img')
+        ->where('name', 'like', '%'.$searchMovie. '%')
+        ->get();
+ 
+        return $searchResult;
     }
 
 }
