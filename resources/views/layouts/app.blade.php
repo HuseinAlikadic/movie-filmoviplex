@@ -21,6 +21,9 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
 
+    {{-- Moment --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.26.0/moment.min.js"></script>
+
 </head>
 <body>
     <div id="app">
@@ -38,10 +41,10 @@
                     <ul class="navbar-nav mr-auto">
 
                     </ul>
-                    
+
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ml-auto">
-                        
+
                         <!-- Authentication Links -->
                         @guest
                             @if (Route::has('login'))

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-// use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Actor;
 use App\Models\Category;
 use App\Models\Comment;
@@ -12,192 +12,220 @@ use App\Models\Movie;
 use App\Models\MovieDirector;
 use App\Models\MoviesActor;
 use App\Models\User;
-use Auth;
+// use Auth;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 
 
 class MovieController extends Controller
 {
-    public function show(){
+    public function show()
+    {
 
-       $arrayMovieAll['basicMovieInformation'] =Movie::selectRaw('YEAR(realise_date) as dateOfRealiseMovie, movies.id,movies.name,movies.img')
-       ->get();
+        $arrayMovieAll['basicMovieInformation'] = Movie::selectRaw('YEAR(realise_date) as dateOfRealiseMovie, movies.id,movies.name,movies.img')
+            ->get();
 
-       $arrayMovieAll['user']= Auth::user();
+        $arrayMovieAll['user'] = Auth::user();
 
-       $arrayMovieAll['categoryOfMovie']=Category::get();
+        $arrayMovieAll['categoryOfMovie'] = Category::get();
 
-       $arrayMovieAll['actors']=Actor::get();
+        $arrayMovieAll['actors'] = Actor::get();
 
-       $arrayMovieAll['directors']=Director::get();
-    
-        return view ('movie/movie')->with($arrayMovieAll);
+        $arrayMovieAll['directors'] = Director::get();
+
+        return view('movie/movie')->with($arrayMovieAll);
     }
 
-    public function showOneMovieData($id){
- 
-       
-        $arrayOneMovieShow['movieDetail']=Movie::leftJoin('categories', 'categories.id', '=', 'movies.category_id')
-            ->selectRaw( 'YEAR(realise_date) as dateOfRealiseMovie, movies.id,movies.name,movies.category_id,movies.img,                       
+    public function showOneMovieData($id)
+    {
+
+
+        $arrayOneMovieShow['movieDetail'] = Movie::leftJoin('categories', 'categories.id', '=', 'movies.category_id')
+            ->selectRaw('YEAR(realise_date) as dateOfRealiseMovie, movies.id,movies.name,movies.category_id,movies.img,
                     movies.realise_date,movies.rated_value, movies.country,movies.description,categories.name as category_name')
-            ->where('movies.id',$id)        
+            ->where('movies.id', $id)
             ->first();
-       
-        $arrayOneMovieShow['categoryOfMovie']=Category::get();
-        
-        $arrayOneMovieShow['actorDetail']=Actor::leftJoin('movies_actors','actors.id', '=','movies_actors.actor_id')  
-            ->select('movies_actors.id as id','actors.id as actor_id','actors.name') 
-            ->where('movies_actors.movie_id',$id)
-            ->get();
-        
-        $arrayOneMovieShow['directorsDetail']=Director::leftJoin('movie_directors','directors.id','=','movie_directors.director_id')
-            ->select('movie_directors.id as id','directors.id as director_id','directors.name')
-            ->where('movie_directors.movie_id',$id)
+
+        $arrayOneMovieShow['categoryOfMovie'] = Category::get();
+
+        $arrayOneMovieShow['actorDetail'] = Actor::leftJoin('movies_actors', 'actors.id', '=', 'movies_actors.actor_id')
+            ->select('movies_actors.id as id', 'actors.id as actor_id', 'actors.name')
+            ->where('movies_actors.movie_id', $id)
             ->get();
 
-        $arrayOneMovieShow['actors']=Actor::get();
+        $arrayOneMovieShow['directorsDetail'] = Director::leftJoin('movie_directors', 'directors.id', '=', 'movie_directors.director_id')
+            ->select('movie_directors.id as id', 'directors.id as director_id', 'directors.name')
+            ->where('movie_directors.movie_id', $id)
+            ->get();
 
-        $arrayOneMovieShow['directors']=Director::get();    
+        $arrayOneMovieShow['actors'] = Actor::get();
 
-        $arrayOneMovieShow['userLog']=Auth::id();  
-   
+        $arrayOneMovieShow['directors'] = Director::get();
 
-        $arrayOneMovieShow['commentsOfMovie']=Comment::leftJoin('users', 'users.id','=','comments.user_id')
-        ->leftJoin('movies', 'movies.id', '=', 'comments.movie_id')
-        ->select('comments.id as id', 'users.id as user_id', 'users.name', 'comments.movie_id', 'comments.comment_value')
-        ->where('comments.movie_id',$id)
-        ->get();                               
+        $arrayOneMovieShow['userLog'] = Auth::id();
+
+
+        $arrayOneMovieShow['commentsOfMovie'] = Comment::leftJoin('users', 'users.id', '=', 'comments.user_id')
+            ->leftJoin('movies', 'movies.id', '=', 'comments.movie_id')
+            ->select(DB::raw('DATE_FORMAT(comments.created_at, "%d/%m/%Y %H:%i:%s")as dateCreated'), 'comments.id as id', 'users.id as user_id', 'users.name', 'comments.movie_id', 'comments.comment_value')
+            ->where('comments.movie_id', $id)
+            ->get();
 
 
         return view('movie/movieShow')->with($arrayOneMovieShow);
     }
 
-    public function add_new_movie (Request $request ){
+    public function add_new_movie(Request $request)
+    {
         //  dd($request);
 
-        $movieActors=$request->get('movieActors');
-        $movieDirectors=$request->get('movieDirectors');
+        $movieActors = $request->get('movieActors');
+        $movieDirectors = $request->get('movieDirectors');
         // dd($movieDirectors);
-           
-        $vallidation=$request->validate([
-            'name'=>'required',
-            'category_id'=>'required',
-            'img'=>'required|mimes:jpg,png,jpeg|max:5048',
-            'realise_date'=>'required',
-            'rated_value'=>'required|numeric|min:1|max:5',
-            'country'=>'required',
-            'description'=>'required'
+
+        $validation = $request->validate([
+            'name' => 'required',
+            'category_id' => 'required',
+            'img' => 'required|mimes:jpg,png,jpeg|max:5048',
+            'realise_date' => 'required',
+            'rated_value' => 'required|numeric|min:1|max:5',
+            'country' => 'required',
+            'description' => 'required'
         ]);
 
-        $nameOfImage=$request->img->getClientOriginalName();
-        $newimageName= time() . '-' . $nameOfImage;
+        $nameOfImage = $request->img->getClientOriginalName();
+        $newimageName = time() . '-' . $nameOfImage;
 
         $request->img->move(public_path('categoryImages'), $newimageName);
-        
-        $newMovie= new Movie();
-        $newMovie->fill($vallidation);
-        $newMovie->img=$newimageName;
+
+        $newMovie = new Movie();
+        $newMovie->fill($validation);
+        $newMovie->img = $newimageName;
         $newMovie->save();
 
-        foreach($movieActors as $oneActor){
-            $newMovieActor= new MoviesActor();
-            $newMovieActor->movie_id=$newMovie->id;
-            $newMovieActor->actor_id=$oneActor['actor_id'];      
+        foreach ($movieActors as $oneActor) {
+            $newMovieActor = new MoviesActor();
+            $newMovieActor->movie_id = $newMovie->id;
+            $newMovieActor->actor_id = $oneActor['actor_id'];
             $newMovieActor->save();
         }
-        
-        foreach($movieDirectors as $oneDirector){
-            $newMovieDirector= new MovieDirector();
-            $newMovieDirector->movie_id=$newMovie->id;
-            $newMovieDirector->director_id=$oneDirector['director_id'];
+
+        foreach ($movieDirectors as $oneDirector) {
+            $newMovieDirector = new MovieDirector();
+            $newMovieDirector->movie_id = $newMovie->id;
+            $newMovieDirector->director_id = $oneDirector['director_id'];
             $newMovieDirector->save();
-        } 
-            
+        }
+
         return redirect('/home');
     }
 
-    public function edit_movie( Request $request){
+    public function edit_movie(Request $request)
+    {
         // dd($request);
-        $editMovieActors=$request->get('movieActors');
-        $editMovieDirectors=$request->get('movieDirectors');
-        // edit movie 
-        $validation=$request->validate([
-            'name'=>'required',
-            'category_id'=>'required',
-            'img'=>'nullable',
-            'realise_date'=>'required',
-            'rated_value'=>'required|numeric|min:1|max:5',
-            'country'=>'required',
-            'description'=>'required'
+        $editMovieActors = $request->get('movieActors');
+        $editMovieDirectors = $request->get('movieDirectors');
+        // edit movie
+        $validation = $request->validate([
+            'name' => 'required',
+            'category_id' => 'required',
+            'img' => 'nullable',
+            'realise_date' => 'required',
+            'rated_value' => 'required|numeric|min:1|max:5',
+            'country' => 'required',
+            'description' => 'required'
         ]);
-        
-        $idOfRequest=$request->id;
-        $editMovie=Movie::find($idOfRequest);
+
+        $idOfRequest = $request->id;
+        $editMovie = Movie::find($idOfRequest);
         $editMovie->fill($validation);
         $editMovie->save();
-        
+
         // edit or delete actors
-        $movieActorsIds=[];
+        $movieActorsIds = [];
 
-        foreach($editMovieActors as $editOneActor){
+        foreach ($editMovieActors as $editOneActor) {
 
-            $allActors=MoviesActor::updateOrCreate(
-            ['id'=>$editOneActor['movie_actor_id']],          
-            ['actor_id'=>$editOneActor['actor_id'], 
-             'movie_id'=>$editMovie->id]); 
+            $allActors = MoviesActor::updateOrCreate(
+                ['id' => $editOneActor['movie_actor_id']],
+                [
+                    'actor_id' => $editOneActor['actor_id'],
+                    'movie_id' => $editMovie->id
+                ]
+            );
 
-            $movieActorsIds[]=$allActors->id;         
+            $movieActorsIds[] = $allActors->id;
         }
-        MoviesActor::where('movie_id',$editMovie->id)->whereNotIn('id',$movieActorsIds)->delete();
+        MoviesActor::where('movie_id', $editMovie->id)->whereNotIn('id', $movieActorsIds)->delete();
         //    edit or delete directors
-        $movieDirectorsIds=[];   
-           
-        foreach($editMovieDirectors as $editOneDiector){
-              
-            $allDirectors=MovieDirector::updateOrCreate(
-                ['id'=>$editOneDiector['movie_directors_id']],
-                ['director_id'=>$editOneDiector['director_id'],
-                 'movie_id'=>$editMovie->id]);
-                 
-            $movieDirectorsIds[]=$allDirectors->id;     
-                      
+        $movieDirectorsIds = [];
+
+        foreach ($editMovieDirectors as $editOneDirector) {
+
+            $allDirectors = MovieDirector::updateOrCreate(
+                ['id' => $editOneDirector['movie_directors_id']],
+                [
+                    'director_id' => $editOneDirector['director_id'],
+                    'movie_id' => $editMovie->id
+                ]
+            );
+
+            $movieDirectorsIds[] = $allDirectors->id;
         }
 
-        MovieDirector::where('movie_id',$editMovie->id)->whereNotIn('id',$movieDirectorsIds)->delete();
-       
-        return redirect()->back( );
+        MovieDirector::where('movie_id', $editMovie->id)->whereNotIn('id', $movieDirectorsIds)->delete();
+
+        return redirect()->back();
     }
 
-    public function add_comment( Request $request){
-        $movieId=$request['params']['movie_id'];
-        $movieComment=$request['params']['movieComment'];
-        $userId=$request['params']['user_id'];
-        
-        $newComments= new Comment();
-        $newComments->user_id=$userId;
-        $newComments->movie_id=$movieId;
-        $newComments->comment_value=$movieComment;
+    public function add_comment(Request $request)
+    {
+        $movieId = $request['params']['movie_id'];
+        $movieComment = $request['params']['movieComment'];
+        $userId = $request['params']['user_id'];
+
+        $carbon = new Carbon('Europe/Belgrade');
+        info($carbon);
+        info('___');
+
+
+
+        $newComments = new Comment();
+        $newComments->user_id = $userId;
+        $newComments->movie_id = $movieId;
+        $newComments->comment_value = $movieComment;
         $newComments->save();
-        
-    
-        $commentsOfMovie=Comment::leftJoin('users', 'users.id','=','comments.user_id')
-        ->leftJoin('movies', 'movies.id', '=', 'comments.movie_id')
-        ->select('comments.id as id', 'users.id as user_id', 'users.name', 'comments.movie_id', 'comments.comment_value')
-        ->where('comments.movie_id',$movieId)
-        ->get();   
+
+
+        $commentsOfMovie = Comment::leftJoin('users', 'users.id', '=', 'comments.user_id')
+            ->leftJoin('movies', 'movies.id', '=', 'comments.movie_id')
+            ->select(DB::raw('DATE_FORMAT(comments.created_at, "%d/%m/%Y %H:%i:%s")as dateCreated'), 'comments.id as id', 'users.id as user_id', 'users.name', 'comments.movie_id', 'comments.comment_value')
+            ->where('comments.movie_id', $movieId)
+            ->get();
 
         return $commentsOfMovie;
     }
 
-    public function search_movie(Request $request){
-    //   dd($request->get('searchMovie'));
-        $searchMovie=$request['params']['searchMovie'];
-        
-        $searchResult=Movie::selectRaw('YEAR(realise_date) as dateOfRealiseMovie, movies.id,movies.name,movies.img')
-        ->where('name', 'like', '%'.$searchMovie. '%')
-        ->get();
- 
+    public function search_movie(Request $request)
+    {
+        //   dd($request->get('searchMovie'));
+        $searchMovie = $request['params']['searchMovie'];
+
+        $searchResult = Movie::selectRaw('YEAR(realise_date) as dateOfRealiseMovie, movies.id,movies.name,movies.img')
+            ->where('name', 'like', '%' . $searchMovie . '%')
+            ->get();
+
         return $searchResult;
     }
+    public function delete_movie(Request $request)
+    {
 
+        $id = $request->get('idOfMovie');
+
+        $deleteMovie = Movie::where('id', $id)
+            ->delete();
+
+        return redirect('/home');
+    }
 }

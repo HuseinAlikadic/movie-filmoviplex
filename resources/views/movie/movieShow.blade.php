@@ -2,61 +2,87 @@
 
 @section('content')
 <div class="container">
-    <div class="row"  >
-       <div class="col-sm-4"  >             
-                <img   :src="'{{ URL::to('/') }}/categoryImages/' +movieDetail.img"  alt="Image"   height="100%" width="100%" />                
-        </div>
-       <div class="col-sm-8">
-           <h3>@{{ movieDetail.name }} (@{{ movieDetail.dateOfRealiseMovie }}) 
-            <i class="fas fa-trash-alt float-right deleteMovieDetailIcon" ></i> 
-            <i class="fas fa-edit float-right editMovieDetailIcon"   @click="editMovieDetail()"></i>
-            </h3>
-          
-           <hr>
-           <h4>@{{ movieDetail.description }}</h4>
-           <br>
-           <h5>@{{ movieDetail.category_name }}</h5>
-           <br>
-           <h5>  Year of film release: @{{ movieDetail.dateOfRealiseMovie}}, IMBD  <star-rating  :inline="true"  :read-only="true" :rating=" movieDetail.rated_value" :star-size="15" :show-rating="false" /> </h5>   
-            <h5>Actors: <span v-for="(actor,index) in actorDetail" :key="index">@{{ nameOfActors(index)}} </span> </h5>
-            <h5>Directors: <span v-for="(director,index) in directorsDetail"> @{{nameOfDirectors(index)}}</span></h5>         
-           <h5>Country: @{{ movieDetail.country }}</h5>          
-       </div>
-      
-   </div>
-   <br>
-   <div class="row">
-    <div class="col-md-4">
+  <div class="row"  >
+    <div class="col-sm-4"  >
+                <img   :src="'{{ URL::to('/') }}/categoryImages/' +movieDetail.img"  alt="Image"   height="100%" width="100%" />
     </div>
+    <div class="col-sm-8">
+      <h3>@{{ movieDetail.name }} (@{{ movieDetail.dateOfRealiseMovie }})
+        <i class="fas fa-trash-alt float-right deleteMovieDetailIcon" data-toggle="modal" data-target="#confirmeDeleteMovie"></i>
+        <i class="fas fa-edit float-right editMovieDetailIcon"   @click="editMovieDetail()"></i>
+        </h3>
+      <hr>
+      <h4>@{{ movieDetail.description }}</h4>
+      <br>
+      <h5>@{{ movieDetail.category_name }}</h5>
+      <br>
+      <h5>  Year of film release: @{{ movieDetail.dateOfRealiseMovie}}, IMBD  <star-rating  :inline="true"  :read-only="true" :rating=" movieDetail.rated_value" :star-size="15" :show-rating="false" /> </h5>
+        <h5>Actors: <span v-for="(actor,index) in actorDetail" :key="index">@{{ nameOfActors(index)}} </span> </h5>
+        <h5>Directors: <span v-for="(director,index) in directorsDetail"> @{{nameOfDirectors(index)}}</span></h5>
+      <h5>Country: @{{ movieDetail.country }}</h5>
+    </div>
+
+  </div>
+  <br>
+  <div class="row">
+    <div class="col-md-4"></div>
     <div class="col-md-8">
       <div v-for="comment in commentsOfMovie">
         <div class="card card-white post">
-          <div class="post-heading">            
+          <div class="post-heading">
               <div class="float-left meta">
                   <div class="title h5">
-                     <p>User: @{{comment.name  }} </p>
+                     <p> @{{comment.name  }}  @{{ comment.dateCreated }}</p>
+                    {{-- <p>@{{ timeOfRealise(comment.dateCreated) }}</p> --}}
                   </div>
-                  <h6 class="text-muted time">1 minute ago</h6>
+
               </div>
-          </div> 
-          <div class="post-description"> 
-              <p>@{{ comment.comment_value }}</p>            
           </div>
-      </div>
+          <div class="post-description">
+              <p>@{{ comment.comment_value }}</p>
+          </div>
+        </div>
       </div>
     </div>
-   </div>
-   <div class="row">        
-      <div class="col-md-12">
+  </div>
+  <div class="row">
+    <div class="col-md-12">
       <br>
       <comments-movie :comments_of_movie="commentsOfMovie" :movie_id="movieDetail.id" :user_id="userLog"></comments-movie>
-      </div>
     </div>
-   {{-- Edit movie detail --}}
-   <div class="modal" id="editMovieDetailId">
+  </div>
+   {{-- Delete movie --}}
+   <div class="modal" id="confirmeDeleteMovie">
     <div class="modal-dialog">
       <div class="modal-content">
-      
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Modal Heading</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+
+        <!-- Modal body -->
+        <form action="/api/delete-movie" method="POST">
+          @csrf
+          <div class="modal-body">
+            <button type="button" class="btn btn-success" style="min-width: 49%;" data-dismiss="modal">Close</button>
+            <input type="hidden" v-model="movieDetail.id" name="idOfMovie">
+            <button type="submit" class="btn btn-danger " style="min-width: 49%;" @click="deleteMovie()">Delete</button>
+          </div>
+        </form>
+        <!-- Modal footer -->
+        <div class="modal-footer">
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+   {{-- Edit movie detail --}}
+  <div class="modal" id="editMovieDetailId">
+    <div class="modal-dialog">
+      <div class="modal-content">
         <!-- Modal Header -->
         <div class="modal-header">
           <h4 class="modal-title">Modal Heading</h4>
@@ -75,9 +101,9 @@
               <label for="sel1">Select Category:</label>
               <select class="form-control" name="category_id" v-model="movieDetail.category_id " >
                   <option value="">Select</option>
-                  <option :value="category.id"  v-for="category in categoryOfMovie">@{{category.name}}</option>      
+                  <option :value="category.id"  v-for="category in categoryOfMovie">@{{category.name}}</option>
               </select>
-            </div> 
+            </div>
             <div class="form-group">
               <label for="sel1">Choose image:</label>
               <br>
@@ -85,10 +111,10 @@
             </div>
             <div class="form-group">
               <label for="sel1">Choose date of realise movie:</label>
-              <br>                      
+              <br>
               <input type="date" class="form-control" name="realise_date" v-model="movieDetail.realise_date" required >
             </div>
-            <div class="form-group">   
+            <div class="form-group">
             <input type="number" class="form-control" name="rated_value" min="1" max="5" placeholder="Rate between 1 and 5"  v-model="movieDetail.rated_value"required>
             </div>
             <div class="form-group">
@@ -100,10 +126,10 @@
               <input type="text" class="form-control" name="description" v-model="movieDetail.description" required>
             </div>
               {{--repeater uraditi TODO --}}
-            
+
               <reapiter-movie-actors :movie_actors="actorDetail" :actors="actors"></reapiter-movie-actors>
-                       
-              <reapiter-movie-directors :movie_directors="directorsDetail" :directors="directors"></reapiter-movie-directors> 
+
+              <reapiter-movie-directors :movie_directors="directorsDetail" :directors="directors"></reapiter-movie-directors>
 
             <!-- Modal footer -->
             <div class="modal-footer">
@@ -113,30 +139,30 @@
       </div>
     </div>
   </div>
+
 </div>
 @endsection
- 
+
 @section('vue-section')
-<script>  
+<script>
 const app = new Vue({
     el: '#app',
     name: 'MovieShowOne',
-    
     data() {
-        return {            
-            movieDetail:<?=$movieDetail?>, 
+        return {
+            movieDetail:<?=$movieDetail?>,
             categoryOfMovie:<?=$categoryOfMovie?>,
             actorDetail:<?=$actorDetail?>,
             directorsDetail:<?=$directorsDetail?>,
             actors:<?=$actors?>,
-            directors:<?=$directors?>,            
+            directors:<?=$directors?>,
             commentsOfMovie:<?=$commentsOfMovie?>,
-            userLog:"<?=$userLog?>" 
-           
+            userLog:"<?=$userLog?>"
+
         }
     },
     methods: {
-        editMovieDetail: function(){              
+        editMovieDetail: function(){
           $('#editMovieDetailId').modal('toggle');
         },
         nameOfActors(index){
@@ -152,14 +178,17 @@ const app = new Vue({
           }else{
             return `${ this.directorsDetail[index].name}.`;
           }
-       }
-         
-    },
-    mounted() {
-        
-    },
-  
+       },
+       deleteMovie:function(){
+         $('#confirmeDeleteMovie').modal('hide');
+        // console.log(this.movieDetail);
+       },
 
+    //    timeOfRealise:function(created_at){
+    //     //    console.log(created_at);
+    //    return created_at;
+    //    }
+    },
 
 });
 
