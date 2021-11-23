@@ -28,12 +28,12 @@
     <div class="col-md-4"></div>
     <div class="col-md-8">
       <div v-for="comment in commentsOfMovie">
-        <div class="card card-white post">
+        <div class="card card-white post textAreaComment">
           <div class="post-heading">
               <div class="float-left meta">
                   <div class="title h5">
                      <p> @{{comment.name  }}  @{{ comment.dateCreated }}</p>
-                    {{-- <p>@{{ timeOfRealise(comment.dateCreated) }}</p> --}}
+                    <p>@{{ timeOfRealise(comment.dateCreated) }}</p>
                   </div>
 
               </div>
@@ -184,10 +184,10 @@ const app = new Vue({
         // console.log(this.movieDetail);
        },
 
-    //    timeOfRealise:function(created_at){
-    //     //    console.log(created_at);
-    //    return created_at;
-    //    }
+       timeOfRealise:function(created_at){
+           console.log(created_at);
+       return created_at;
+       }
     },
 
 });

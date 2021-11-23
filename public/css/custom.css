@@ -74,3 +74,15 @@ body {
     pointer-events: none;
     color: #aaa;
 }
+
+.textAreaComment::before {
+    content: "";
+    font-size: 1px;
+    color: transparent;
+    position: absolute;
+    background: #c30e1a;
+    width: 5px;
+    height: 70%;
+    top: 30%;
+    left: 0;
+}
