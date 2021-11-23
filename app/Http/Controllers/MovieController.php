@@ -23,8 +23,9 @@ class MovieController extends Controller
     public function show()
     {
 
-        $arrayMovieAll['basicMovieInformation'] = Movie::selectRaw('YEAR(realise_date) as dateOfRealiseMovie, movies.id,movies.name,movies.img')
+        $arrayMovieAll['basicMovieInformation'] = Movie::selectRaw('realise_date as dateOfRealiseMovie, movies.id,movies.name,movies.img')
             ->get();
+           
 
         $arrayMovieAll['user'] = Auth::user();
 
